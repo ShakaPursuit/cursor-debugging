@@ -56,11 +56,12 @@ function NewProductForm({ addProduct }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!newProduct.name || newProduct.price <= 0 || isNaN(newProduct.price)) {
+    const price = parseFloat(newProduct.price);
+    if (!newProduct.name || price <= 0 || isNaN(price)) {
       alert("Please enter a valid name and price.");
       return;
     }
-    addProduct(newProduct);
+    addProduct({ ...newProduct, price });
     setNewProduct({ name: "", price: "" });
   };
 
@@ -88,6 +89,90 @@ function NewProductForm({ addProduct }) {
   );
 }
 
+// New CheckoutForm component
+function CheckoutForm({ total, onClose }) {
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    address: "",
+    cardNumber: "",
+    expiry: "",
+    cvv: "",
+  });
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    // Simulate payment processing
+    alert("Payment processed successfully!");
+    onClose();
+  };
+
+  return (
+    <div className="checkout-form-overlay">
+      <div className="checkout-form">
+        <h2>Checkout</h2>
+        <p>Total: ${total}</p>
+        <form onSubmit={handleSubmit}>
+          <input
+            type="text"
+            name="name"
+            placeholder="Full Name"
+            value={formData.name}
+            onChange={handleChange}
+            required
+          />
+          <input
+            type="email"
+            name="email"
+            placeholder="Email"
+            value={formData.email}
+            onChange={handleChange}
+            required
+          />
+          <input
+            type="text"
+            name="address"
+            placeholder="Delivery Address"
+            value={formData.address}
+            onChange={handleChange}
+            required
+          />
+          <input
+            type="text"
+            name="cardNumber"
+            placeholder="Card Number"
+            value={formData.cardNumber}
+            onChange={handleChange}
+            required
+          />
+          <input
+            type="text"
+            name="expiry"
+            placeholder="MM/YY"
+            value={formData.expiry}
+            onChange={handleChange}
+            required
+          />
+          <input
+            type="text"
+            name="cvv"
+            placeholder="CVV"
+            value={formData.cvv}
+            onChange={handleChange}
+            required
+          />
+          <button type="submit">Pay Now</button>
+        </form>
+        <button onClick={onClose}>Cancel</button>
+      </div>
+    </div>
+  );
+}
+
 // Main App component
 function App() {
   const [products, setProducts] = useState([
@@ -96,6 +181,7 @@ function App() {
     { id: 3, name: "Cherry", price: 2 },
   ]);
   const [cart, setCart] = useState([]);
+  const [showCheckout, setShowCheckout] = useState(false);
 
   const addToCart = (item) => {
     const updatedCart = [...cart];
@@ -109,13 +195,17 @@ function App() {
   };
 
   const addProduct = (product) => {
-    setProducts([...products, product]);
+    const newId = Math.max(...products.map(p => p.id), 0) + 1;
+    setProducts([...products, { ...product, id: newId }]);
   };
+
+  const cartTotal = cart
+    .reduce((acc, item) => acc + item.price * item.quantity, 0)
+    .toFixed(2);
 
   useEffect(() => {
     console.log("Cart updated");
-    // Error 6: Incorrect dependency array
-  }, [cart, undefinedVariable]);
+  }, [cart]);
 
   return (
     <div className="container">
@@ -126,18 +216,27 @@ function App() {
       <div className="product-list">
         {products.map((product) => (
           <div className="product-card" key={product.id}>
-            <Product item={product.name} addToCart={addToCart} />
+            <Product item={product} addToCart={addToCart} />
           </div>
         ))}
       </div>
 
       <ShoppingCart cartItems={cart} />
+
+      {cart.length > 0 && (
+        <button onClick={() => setShowCheckout(true)} className="checkout-button">
+          Proceed to Checkout
+        </button>
+      )}
+
+      {showCheckout && (
+        <CheckoutForm
+          total={cartTotal}
+          onClose={() => setShowCheckout(false)}
+        />
+      )}
     </div>
   );
-
-  console.log(undefinedVariable);
 }
-
-const [state, setState] = useState();
 
 export default App;
